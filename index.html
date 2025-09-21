@@ -592,11 +592,11 @@
             width: 100%;
             padding: 12px;
             border: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--fg);
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
             border-radius: 8px;
             font-size: 16px;
-            transition: border-color 0.3s ease;
+            transition: all 0.3s ease;
         }
 
         .form-group input:focus,
@@ -604,7 +604,25 @@
         .form-group textarea:focus {
             outline: none;
             border-color: var(--brand);
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #888;
+        }
+
+        .form-group input::selection,
+        .form-group select::selection,
+        .form-group textarea::selection {
+            background: var(--brand);
+            color: var(--bg);
+        }
+
+        .form-group select option {
+            background: var(--card);
+            color: var(--fg);
         }
 
         .form-group textarea {
@@ -733,12 +751,23 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background: white;
+            border: 1px solid #ddd;
             padding: 40px;
             border-radius: 20px;
             max-width: 500px;
             width: 90%;
             max-height: 80vh;
             overflow-y: auto;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content h2 {
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .modal-content p {
+            color: #666;
         }
 
         .close {
@@ -748,6 +777,10 @@
             font-size: 30px;
             cursor: pointer;
             color: #999;
+        }
+
+        .close:hover {
+            color: #333;
         }
 
         .form-group {
@@ -988,11 +1021,24 @@ curl -X POST https://api.sencial.ai/v1/scene-detect \\<br>
                             </div>
                         </div>
                         
+                        <!-- Scene Selector -->
+                        <div style="margin: 16px 0;">
+                            <div style="font-size: 12px; color: var(--muted); margin-bottom: 8px;">Select audio scene:</div>
+                            <div style="display: flex; gap: 8px;">
+                                <button onclick="selectScene('street')" id="street-btn" class="scene-btn active" style="flex: 1; padding: 8px 12px; border: 1px solid var(--brand); background: var(--brand); color: var(--bg); border-radius: 6px; font-size: 12px; cursor: pointer;">
+                                    🚗 Street Scene
+                                </button>
+                                <button onclick="selectScene('restaurant')" id="restaurant-btn" class="scene-btn" style="flex: 1; padding: 8px 12px; border: 1px solid var(--border); background: transparent; color: var(--muted); border-radius: 6px; font-size: 12px; cursor: pointer;">
+                                    🍽️ Restaurant Scene
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Audio Player -->
                         <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin: 16px 0;">
                             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                                 <span style="font-size: 16px;">🎧</span>
-                                <span style="color: var(--fg); font-weight: 500;">street_audio.wav</span>
+                                <span id="audio-filename" style="color: var(--fg); font-weight: 500;">street_audio.wav</span>
                                 <button onclick="toggleAudio()" id="audio-control" style="background: var(--brand); color: var(--bg); border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;">▶ Play</button>
                             </div>
                         </div>
@@ -1005,7 +1051,7 @@ curl -X POST https://api.sencial.ai/v1/scene-detect \\<br>
                         <!-- API Response -->
                         <div id="scene-response" style="display: none;">
                             <div style="font-size: 12px; color: var(--muted); margin-bottom: 8px;">Response:</div>
-                            <div class="code" style="font-size: 11px; line-height: 1.4;">
+                            <div id="street-response" class="code" style="font-size: 11px; line-height: 1.4;">
 {<br>
 &nbsp;&nbsp;"scene": "urban_street",<br>
 &nbsp;&nbsp;"confidence": 0.94,<br>
@@ -1017,6 +1063,20 @@ curl -X POST https://api.sencial.ai/v1/scene-detect \\<br>
 &nbsp;&nbsp;&nbsp;&nbsp;{"type": "ambulance", "confidence": 0.88, "level_db": 90},<br>
 &nbsp;&nbsp;&nbsp;&nbsp;{"type": "fire_truck", "confidence": 0.85, "level_db": 92},<br>
 &nbsp;&nbsp;&nbsp;&nbsp;{"type": "birds", "confidence": 0.71, "level_db": 45}<br>
+&nbsp;&nbsp;]<br>
+}
+                            </div>
+                            <div id="restaurant-response" class="code" style="font-size: 11px; line-height: 1.4; display: none;">
+{<br>
+&nbsp;&nbsp;"scene": "restaurant",<br>
+&nbsp;&nbsp;"confidence": 0.91,<br>
+&nbsp;&nbsp;"detected_sources": [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{"type": "background_music", "confidence": 0.87, "level_db": 72},<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{"type": "background_noise", "confidence": 0.83, "level_db": 68},<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{"type": "voice_alice", "confidence": 0.94, "level_db": 62, "speaker_id": "alice"},<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{"type": "voice_john", "confidence": 0.92, "level_db": 58, "speaker_id": "john"},<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{"type": "voice_unknown_1", "confidence": 0.78, "level_db": 74, "speaker_id": "unknown_1"},<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{"type": "voice_unknown_2", "confidence": 0.81, "level_db": 76, "speaker_id": "unknown_2"}<br>
 &nbsp;&nbsp;]<br>
 }
                             </div>
@@ -1034,7 +1094,8 @@ curl -X POST https://api.sencial.ai/v1/scene-detect \\<br>
                         <div id="source-selection" style="display: none;">
                             <div style="font-size: 14px; color: var(--muted); margin-bottom: 12px;">Select sources to extract:</div>
                             
-                            <div style="space-y: 8px;">
+                            <!-- Street Scene Sources -->
+                            <div id="street-sources" style="space-y: 8px;">
                                 <label style="display: flex; align-items: center; gap: 8px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px; cursor: pointer;">
                                     <input type="checkbox" id="voices-check" data-audio="voices" style="margin: 0;">
                                     <span>🗣️</span>
@@ -1074,6 +1135,56 @@ curl -X POST https://api.sencial.ai/v1/scene-detect \\<br>
                                     </label>
                                 </div>
                             </div>
+
+                            <!-- Restaurant Scene Sources -->
+                            <div id="restaurant-sources" style="space-y: 8px; display: none;">
+                                <label style="display: flex; align-items: center; gap: 8px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px; cursor: pointer;">
+                                    <input type="checkbox" id="alice-voice-check" data-audio="alice-voice" style="margin: 0;">
+                                    <span>👤</span>
+                                    <span style="flex: 1; color: var(--fg);">Alice (me) - (62dB)</span>
+                                    <span style="font-size: 11px; color: var(--muted);">94% confidence</span>
+                                </label>
+                                
+                                <label style="display: flex; align-items: center; gap: 8px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px; cursor: pointer;">
+                                    <input type="checkbox" id="john-voice-check" data-audio="john-voice" style="margin: 0;">
+                                    <span>👨</span>
+                                    <span style="flex: 1; color: var(--fg);">John M. - (58dB)</span>
+                                    <span style="font-size: 11px; color: var(--muted);">92% confidence</span>
+                                </label>
+                                
+                                <label style="display: flex; align-items: center; gap: 8px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px; cursor: pointer;">
+                                    <input type="checkbox" id="restaurant-music-check" data-audio="restaurant-music" style="margin: 0;">
+                                    <span>🎵</span>
+                                    <span style="flex: 1; color: var(--fg);">Background Music (72dB)</span>
+                                    <span style="font-size: 11px; color: var(--muted);">87% confidence</span>
+                                </label>
+                                
+                                <div style="border-top: 1px solid rgba(255,255,255,0.1); margin: 8px 0; padding-top: 8px;">
+                                    <div style="font-size: 12px; color: var(--muted); margin-bottom: 8px;">Unwanted sources (demonstration):</div>
+                                    
+                                    <label style="display: flex; align-items: center; gap: 8px; padding: 8px; background: rgba(255,255,255,0.02); border-radius: 6px; cursor: pointer; opacity: 0.7;">
+                                        <input type="checkbox" id="woman1-voice-check" data-audio="woman1-voice" style="margin: 0;">
+                                        <span>👩</span>
+                                        <span style="flex: 1; color: var(--fg);">Loud Woman 1 (74dB)</span>
+                                        <span style="font-size: 11px; color: var(--muted);">78% confidence</span>
+                                    </label>
+                                    
+                                    <label style="display: flex; align-items: center; gap: 8px; padding: 8px; background: rgba(255,255,255,0.02); border-radius: 6px; cursor: pointer; opacity: 0.7;">
+                                        <input type="checkbox" id="woman2-voice-check" data-audio="woman2-voice" style="margin: 0;">
+                                        <span>👩</span>
+                                        <span style="flex: 1; color: var(--fg);">Loud Woman 2 (76dB)</span>
+                                        <span style="font-size: 11px; color: var(--muted);">81% confidence</span>
+                                    </label>
+                                    
+                                    <label style="display: flex; align-items: center; gap: 8px; padding: 8px; background: rgba(255,255,255,0.02); border-radius: 6px; cursor: pointer; opacity: 0.7;">
+                                        <input type="checkbox" id="restaurant-background-check" data-audio="restaurant-background" style="margin: 0;">
+                                        <span>🍽️</span>
+                                        <span style="flex: 1; color: var(--fg);">Background Noise (68dB)</span>
+                                        <span style="font-size: 11px; color: var(--muted);">83% confidence</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                             
                             <button onclick="runExtraction()" id="extract-btn" class="btn primary" style="width: 100%; margin: 16px 0;">
                                 🎵 Extract Selected Sources
@@ -1108,25 +1219,71 @@ curl -X POST https://api.sencial.ai/v1/extract \\<br>
         </div>
     </section>
 
-        <!-- Problem Section -->
+        <!-- Industries Section -->
         <section class="problem">
             <div class="container">
-                <h2>The Audio Intelligence Challenge</h2>
-                <p style="color: var(--muted);">Traditional audio processing falls short when developers need precise control over complex soundscapes</p>
+                <h2>Industries Powered by Audio Intelligence</h2>
+                <p style="color: var(--muted); margin-bottom: 48px;">From robotics to defense, developers across industries need advanced audio processing capabilities</p>
                 
-                <div class="stats">
-                    <div class="stat">
-                        <span class="stat-number">1.5B</span>
-                        <div class="stat-label">People need better audio solutions</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; margin: 40px 0;">
+                    <div class="card" style="text-align: center; padding: 32px 24px;">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">🤖</div>
+                        <h3 style="color: var(--fg); margin-bottom: 12px;">Robotics & AI</h3>
+                        <p style="color: var(--muted); font-size: 14px; line-height: 1.6;">Robots understanding voice commands in noisy environments. AI agents isolating user speech from background audio.</p>
                     </div>
-                    <div class="stat">
-                        <span class="stat-number">90%</span>
-                        <div class="stat-label">Of audio apps lack intelligent processing</div>
+                    
+                    <div class="card" style="text-align: center; padding: 32px 24px;">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">🚗</div>
+                        <h3 style="color: var(--fg); margin-bottom: 12px;">Automotive</h3>
+                        <p style="color: var(--muted); font-size: 14px; line-height: 1.6;">In-car voice assistants that work with road noise, music, and passenger conversations.</p>
                     </div>
-                    <div class="stat">
-                        <span class="stat-number">10x</span>
-                        <div class="stat-label">Faster development with our API</div>
+                    
+                    <div class="card" style="text-align: center; padding: 32px 24px;">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">🛡️</div>
+                        <h3 style="color: var(--fg); margin-bottom: 12px;">Security & Defense</h3>
+                        <p style="color: var(--muted); font-size: 14px; line-height: 1.6;">Voice isolation for surveillance, battlefield communication, and threat detection systems.</p>
                     </div>
+                    
+                    <div class="card" style="text-align: center; padding: 32px 24px;">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">🏠</div>
+                        <h3 style="color: var(--fg); margin-bottom: 12px;">Smart Home & IoT</h3>
+                        <p style="color: var(--muted); font-size: 14px; line-height: 1.6;">Smart devices that respond to voice commands despite background TV, music, or conversations.</p>
+                    </div>
+                    
+                    <div class="card" style="text-align: center; padding: 32px 24px;">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">🏥</div>
+                        <h3 style="color: var(--fg); margin-bottom: 12px;">Healthcare</h3>
+                        <p style="color: var(--muted); font-size: 14px; line-height: 1.6;">Medical dictation in noisy hospitals, hearing assistance devices, and patient monitoring systems.</p>
+                    </div>
+                    
+                    <div class="card" style="text-align: center; padding: 32px 24px;">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">🏭</div>
+                        <h3 style="color: var(--fg); margin-bottom: 12px;">Industrial & Manufacturing</h3>
+                        <p style="color: var(--muted); font-size: 14px; line-height: 1.6;">Voice-controlled machinery and safety systems that work in loud factory environments.</p>
+                    </div>
+                    
+                    <div class="card" style="text-align: center; padding: 32px 24px;">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">🎮</div>
+                        <h3 style="color: var(--fg); margin-bottom: 12px;">Gaming & VR</h3>
+                        <p style="color: var(--muted); font-size: 14px; line-height: 1.6;">Real-time voice processing for multiplayer games, spatial audio, and immersive experiences.</p>
+                    </div>
+                    
+                    <div class="card" style="text-align: center; padding: 32px 24px;">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">📡</div>
+                        <h3 style="color: var(--fg); margin-bottom: 12px;">Telecommunications</h3>
+                        <p style="color: var(--muted); font-size: 14px; line-height: 1.6;">Advanced noise cancellation for calls, voice enhancement, and communication systems.</p>
+                    </div>
+                    
+                    <div class="card" style="text-align: center; padding: 32px 24px;">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">🎬</div>
+                        <h3 style="color: var(--fg); margin-bottom: 12px;">Media & Broadcasting</h3>
+                        <p style="color: var(--muted); font-size: 14px; line-height: 1.6;">Real-time audio cleanup, live event processing, and content creation tools.</p>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 48px;">
+                    <h3 style="color: var(--fg); margin-bottom: 16px;">Ready to build the next generation of audio-intelligent applications?</h3>
+                    <a href="#" class="btn primary" onclick="openModal('starter')" style="font-size: 1.1rem; padding: 16px 32px;">Start Building Today</a>
                 </div>
             </div>
         </section>
@@ -1275,12 +1432,17 @@ curl -X POST https://api.sencial.ai/v1/extract \\<br>
                         <label>Primary Use Case *</label>
                         <select name="use_case" required>
                             <option value="">Select your main use case...</option>
-                            <option value="hearing_app">Hearing assistance app</option>
-                            <option value="music_separation">Music stem separation</option>
-                            <option value="voice_isolation">Voice isolation/enhancement</option>
-                            <option value="meeting_diarization">Meeting speaker diarization</option>
-                            <option value="podcast_editing">Podcast/audio editing tools</option>
-                            <option value="accessibility">Accessibility solutions</option>
+                            <option value="robotics_ai">Robotics & AI voice commands</option>
+                            <option value="automotive">Automotive voice assistants</option>
+                            <option value="security_defense">Security & defense applications</option>
+                            <option value="smart_home_iot">Smart home & IoT devices</option>
+                            <option value="healthcare">Healthcare & medical devices</option>
+                            <option value="industrial">Industrial voice control</option>
+                            <option value="gaming_vr">Gaming & VR audio</option>
+                            <option value="telecommunications">Telecommunications & calls</option>
+                            <option value="media_broadcasting">Media & broadcasting</option>
+                            <option value="hearing_assistance">Hearing assistance apps</option>
+                            <option value="music_production">Music production tools</option>
                             <option value="research">Research & experimentation</option>
                             <option value="other">Other</option>
                         </select>
@@ -1310,6 +1472,8 @@ curl -X POST https://api.sencial.ai/v1/extract \\<br>
                         </select>
                     </div>
                     <input type="hidden" name="plan" value="starter">
+                    <!-- Honeypot field for spam protection -->
+                    <input type="text" name="_gotcha" style="display: none;">
                     <button type="submit" class="submit-btn">Create Free Account & Get API Key</button>
                 </form>
                 <p style="font-size: 12px; color: var(--muted); margin-top: 16px; text-align: center;">
@@ -1377,6 +1541,8 @@ curl -X POST https://api.sencial.ai/v1/extract \\<br>
                         </select>
                     </div>
                     <input type="hidden" name="plan" value="developer">
+                    <!-- Honeypot field for spam protection -->
+                    <input type="text" name="_gotcha" style="display: none;">
                     <button type="submit" class="submit-btn">Apply for Beta Access</button>
                 </form>
                 <p style="font-size: 12px; color: var(--muted); margin-top: 16px; text-align: center;">
@@ -1466,6 +1632,8 @@ curl -X POST https://api.sencial.ai/v1/extract \\<br>
                         </select>
                     </div>
                     <input type="hidden" name="plan" value="enterprise">
+                    <!-- Honeypot field for spam protection -->
+                    <input type="text" name="_gotcha" style="display: none;">
                     <button type="submit" class="submit-btn">Schedule Enterprise Consultation</button>
                 </form>
                 <p style="font-size: 12px; color: var(--muted); margin-top: 16px; text-align: center;">
@@ -1494,6 +1662,15 @@ curl -X POST https://api.sencial.ai/v1/extract \\<br>
     <audio id="audio-voices" src="street dialogue/voices.m4a" loop preload="auto"></audio>
     <audio id="audio-birds" src="street dialogue/birds.m4a" loop preload="auto"></audio>
 
+    <!-- Audio Elements for Restaurant Demo -->
+    <audio id="audio-restaurant-original" src="restaurant scene/noisy restaurant scene 2.m4a" loop preload="auto"></audio>
+    <audio id="audio-restaurant-music" src="restaurant scene/restaurant music.m4a" loop preload="auto"></audio>
+    <audio id="audio-restaurant-background" src="restaurant scene/restaurant background noise.m4a" loop preload="auto"></audio>
+    <audio id="audio-alice-voice" src="restaurant scene/recognized voice Alice (me).m4a" loop preload="auto"></audio>
+    <audio id="audio-john-voice" src="restaurant scene/recognized voice John M..m4a" loop preload="auto"></audio>
+    <audio id="audio-woman1-voice" src="restaurant scene/unknown voice woman 1.m4a" loop preload="auto"></audio>
+    <audio id="audio-woman2-voice" src="restaurant scene/unknown voice woman 2.m4a" loop preload="auto"></audio>
+
     <script>
         // API Demo variables
         let audioPlaying = false;
@@ -1502,25 +1679,90 @@ curl -X POST https://api.sencial.ai/v1/extract \\<br>
         let separateAudios = {};
         let sceneDetected = false;
         let extractionRunning = false;
+        let currentScene = 'street';
+
+        // Audio mappings for different scenes
+        const sceneAudios = {
+            'street': {
+                original: 'audio-street-dialogue',
+                sources: {
+                    'traffic': 'audio-traffic',
+                    'jackhammer': 'audio-jackhammer',
+                    'ambulance': 'audio-ambulance',
+                    'fire-truck': 'audio-fire-truck',
+                    'motorcycle': 'audio-motorcycle',
+                    'voices': 'audio-voices',
+                    'birds': 'audio-birds'
+                }
+            },
+            'restaurant': {
+                original: 'audio-restaurant-original',
+                sources: {
+                    'restaurant-music': 'audio-restaurant-music',
+                    'restaurant-background': 'audio-restaurant-background',
+                    'alice-voice': 'audio-alice-voice',
+                    'john-voice': 'audio-john-voice',
+                    'woman1-voice': 'audio-woman1-voice',
+                    'woman2-voice': 'audio-woman2-voice'
+                }
+            }
+        };
 
         // Initialize audio elements
         document.addEventListener('DOMContentLoaded', function() {
-            originalAudio = document.getElementById('audio-street-dialogue');
-            separateAudios = {
-                'traffic': document.getElementById('audio-traffic'),
-                'jackhammer': document.getElementById('audio-jackhammer'),
-                'ambulance': document.getElementById('audio-ambulance'),
-                'fire-truck': document.getElementById('audio-fire-truck'),
-                'motorcycle': document.getElementById('audio-motorcycle'),
-                'voices': document.getElementById('audio-voices'),
-                'birds': document.getElementById('audio-birds')
-            };
+            loadScene('street');
+        });
+
+        function loadScene(scene) {
+            currentScene = scene;
+            const sceneConfig = sceneAudios[scene];
+            
+            // Stop any playing audio
+            if (audioPlaying) {
+                toggleAudio();
+            }
+            
+            // Update original audio
+            originalAudio = document.getElementById(sceneConfig.original);
+            
+            // Update separate audios
+            separateAudios = {};
+            Object.keys(sceneConfig.sources).forEach(key => {
+                separateAudios[key] = document.getElementById(sceneConfig.sources[key]);
+            });
 
             // Set all separate audio volumes to 0 initially
             Object.values(separateAudios).forEach(audio => {
                 if (audio) audio.volume = 0;
             });
-        });
+            
+            // Reset UI state
+            sceneDetected = false;
+            extractionRunning = false;
+            document.getElementById('scene-response').style.display = 'none';
+            document.getElementById('source-selection').style.display = 'none';
+        }
+
+        function selectScene(scene) {
+            // Update button states
+            document.querySelectorAll('.scene-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.background = 'transparent';
+                btn.style.color = 'var(--muted)';
+            });
+            
+            const activeBtn = document.getElementById(scene + '-btn');
+            activeBtn.classList.add('active');
+            activeBtn.style.background = 'var(--brand)';
+            activeBtn.style.color = 'var(--bg)';
+            
+            // Update audio filename
+            const filename = scene === 'street' ? 'street_audio.wav' : 'restaurant_audio.wav';
+            document.getElementById('audio-filename').textContent = filename;
+            
+            // Load the scene
+            loadScene(scene);
+        }
 
         // Step 1: Play original audio
         function toggleAudio() {
@@ -1549,15 +1791,33 @@ curl -X POST https://api.sencial.ai/v1/extract \\<br>
             
             // Simulate API call delay
             setTimeout(() => {
+                // Show appropriate response based on current scene
+                if (currentScene === 'street') {
+                    document.getElementById('street-response').style.display = 'block';
+                    document.getElementById('restaurant-response').style.display = 'none';
+                    document.getElementById('street-sources').style.display = 'block';
+                    document.getElementById('restaurant-sources').style.display = 'none';
+                    
+                    // Pre-select useful sources for street scene
+                    document.getElementById('voices-check').checked = true;
+                    document.getElementById('birds-check').checked = true;
+                } else {
+                    document.getElementById('street-response').style.display = 'none';
+                    document.getElementById('restaurant-response').style.display = 'block';
+                    document.getElementById('street-sources').style.display = 'none';
+                    document.getElementById('restaurant-sources').style.display = 'block';
+                    
+                    // Pre-select useful sources for restaurant scene
+                    document.getElementById('alice-voice-check').checked = true;
+                    document.getElementById('john-voice-check').checked = true;
+                    document.getElementById('restaurant-music-check').checked = true;
+                }
+                
                 response.style.display = 'block';
                 sourceSelection.style.display = 'block';
                 button.textContent = '✅ Scene Detected';
                 button.style.background = '#28a745';
                 sceneDetected = true;
-                
-                // Pre-select useful sources
-                document.getElementById('voices-check').checked = true;
-                document.getElementById('birds-check').checked = true;
             }, 2000);
         }
 
@@ -1585,9 +1845,10 @@ curl -X POST https://api.sencial.ai/v1/extract \\<br>
             
             // Update API request display
             const sourcesParam = selectedSources.join(',');
+            const filename = currentScene === 'street' ? 'street_audio.wav' : 'restaurant_audio.wav';
             request.querySelector('.code').innerHTML = `curl -X POST https://api.sencial.ai/v1/extract \\\\<br>
 &nbsp;&nbsp;-H "Authorization: Bearer sk-..." \\\\<br>
-&nbsp;&nbsp;-F "file=@street_audio.wav" \\\\<br>
+&nbsp;&nbsp;-F "file=@${filename}" \\\\<br>
 &nbsp;&nbsp;-F "sources=${sourcesParam}"`;
             
             // Simulate API call delay
@@ -1646,9 +1907,12 @@ curl -X POST https://api.sencial.ai/v1/extract \\<br>
         document.addEventListener('click', function(e) {
             if (e.target.matches('a[href^="#"]')) {
                 e.preventDefault();
-                const target = document.querySelector(e.target.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
+                const href = e.target.getAttribute('href');
+                if (href && href !== '#') {
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
                 }
             }
         });
@@ -1691,6 +1955,11 @@ curl -X POST https://api.sencial.ai/v1/extract \\<br>
             submitForm(this, 'enterprise', 'Enterprise consultation request submitted! Our sales team will contact you within 1 business day.');
         });
 
+        // Formspree configuration
+        const FORMSPREE_CONFIG = {
+            endpoint: 'https://formspree.io/f/xnnberop'
+        };
+
         function submitForm(form, plan, successMessage) {
             const submitButton = form.querySelector('.submit-btn');
             
@@ -1699,12 +1968,43 @@ curl -X POST https://api.sencial.ai/v1/extract \\<br>
             submitButton.textContent = 'Processing...';
             submitButton.disabled = true;
             
-            // Simulate form submission
-            setTimeout(() => {
+            // Prepare form data for Formspree
+            const formData = new FormData(form);
+            
+            // Add metadata to form data
+            formData.append('_subject', `[Sencial API] New ${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan Signup`);
+            formData.append('_replyto', formData.get('email')); // Use submitter's email as reply-to
+            formData.append('_format', 'plain'); // Plain text format
+            formData.append('timestamp', new Date().toISOString());
+            formData.append('plan_type', plan);
+            formData.append('page_url', window.location.href);
+            formData.append('user_agent', navigator.userAgent);
+            formData.append('form_source', 'Sencial API Website'); // Legitimate source indicator
+            
+            // Send to Formspree
+            fetch(FORMSPREE_CONFIG.endpoint, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                console.log('Formspree response status:', response.status);
+                console.log('Formspree endpoint:', FORMSPREE_CONFIG.endpoint);
+                
+                if (response.ok) {
+                    return response.json().catch(() => ({})); // Handle both JSON and non-JSON responses
+                } else {
+                    throw new Error(`Form submission failed with status: ${response.status}`);
+                }
+            })
+            .then(data => {
+                console.log('Formspree response data:', data);
+                
+                // Success state
                 submitButton.textContent = 'Success!';
                 submitButton.style.background = '#28a745';
-                
-                // Show success message
                 alert(successMessage);
                 
                 setTimeout(() => {
@@ -1714,7 +2014,23 @@ curl -X POST https://api.sencial.ai/v1/extract \\<br>
                     submitButton.disabled = false;
                     form.reset();
                 }, 2000);
-            }, 1500);
+            })
+            .catch((error) => {
+                console.error('Error submitting form:', error);
+                console.error('Formspree endpoint:', FORMSPREE_CONFIG.endpoint);
+                
+                // Show error state
+                submitButton.textContent = 'Error - Try Again';
+                submitButton.style.background = '#dc3545';
+                
+                setTimeout(() => {
+                    submitButton.textContent = originalText;
+                    submitButton.style.background = 'linear-gradient(135deg, var(--brand), #2ea0ff)';
+                    submitButton.disabled = false;
+                }, 3000);
+                
+                alert(`There was an error submitting the form: ${error.message}. Please try again or contact support.`);
+            });
         }
     </script>
 </body>
