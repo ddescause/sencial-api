@@ -999,6 +999,11 @@ curl -X POST https://api.sencial.ai/v1/separate \\<br>
             <div class="container">
                 <h2>Interactive API Demo</h2>
                 <p style="text-align: center; font-size: 1.1rem; color: var(--muted); margin-bottom: 32px;">Experience our audio separation technology - the same processing power behind our API</p>
+                
+                <!-- Mobile Warning -->
+                <div id="mobile-warning" style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); padding: 16px; border-radius: 8px; margin-bottom: 24px; display: none;">
+                    <p style="color: var(--fg); margin: 0; font-size: 0.9rem;"><strong>📱 Mobile Note:</strong> For the best audio demo experience on mobile devices, please use <strong>headphones or earbuds</strong>. iOS Safari has limitations with multiple audio streams.</p>
+                </div>
             
             <div class="demo-container">
                 <!-- API Workflow Demo -->
@@ -1672,6 +1677,10 @@ curl -X POST https://api.sencial.ai/v1/extract \\<br>
     <audio id="audio-woman2-voice" src="restaurant scene/unknown voice woman 2.m4a" loop preload="auto"></audio>
 
     <script>
+        // Mobile/iOS detection
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        
         // API Demo variables
         let audioPlaying = false;
         let extractedPlaying = false;
@@ -1710,6 +1719,11 @@ curl -X POST https://api.sencial.ai/v1/extract \\<br>
 
         // Initialize audio elements
         document.addEventListener('DOMContentLoaded', function() {
+            // Show mobile warning if on mobile device
+            if (isMobile) {
+                document.getElementById('mobile-warning').style.display = 'block';
+            }
+            
             loadScene('street');
         });
 
@@ -1866,7 +1880,15 @@ curl -X POST https://api.sencial.ai/v1/extract \\<br>
                 
                 selectedSources.forEach(source => {
                     if (separateAudios[source]) {
-                        separateAudios[source].volume = 0.8;
+                        // Simple volume settings - just like street scene
+                        let volume = 0.8;
+                        
+                        // Special volumes for restaurant scene
+                        if (source === 'alice-voice') volume = 1.0;        // Alice 100%
+                        if (source === 'john-voice') volume = 1.0;         // John 100% (max allowed)
+                        if (source === 'restaurant-music') volume = 0.25;  // Music 25%
+                        
+                        separateAudios[source].volume = volume;
                     }
                 });
                 
